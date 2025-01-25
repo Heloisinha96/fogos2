@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fogos de Artifício Realistas</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle, #000000, #080808);
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3rem;
+      font-weight: bold;
+      color: white;
+      text-shadow: 0 0 15px #ff0000, 0 0 30px #ff6a00;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="fireworks"></canvas>
+  <div class="message">Eu amo você ❤️</div>
+  <script>
+    const canvas = document.getElementById('fireworks');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Redimensionar o canvas dinamicamente
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    class Firework {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.particles = [];
+        this.createParticles();
+      }
+
+      createParticles() {
+        const numParticles = 200;
+        const colors = ['#ff3b3b', '#ff9b3b', '#ffd93b', '#3bff5e', '#3b79ff'];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        for (let i = 0; i < numParticles; i++) {
+          const angle = (Math.PI * 2 * i) / numParticles;
+          const speed = Math.random() * 4 + 2; // Espalhar partículas
+          this.particles.push({
+            x: this.x,
+            y: this.y,
+            radius: Math.random() * 3 + 1,
+            speedX: Math.cos(angle) * speed,
+            speedY: Math.sin(angle) * speed,
+            gravity: 0.05,
+            alpha: 1,
+            decay: Math.random() * 0.02 + 0.01,
+            color: color,
+          });
+        }
+      }
+
+      update() {
+        this.particles.forEach((p, index) => {
+          p.x += p.speedX;
+          p.y += p.speedY;
+          p.speedY += p.gravity; // Adicionar gravidade
+          p.alpha -= p.decay;
+
+          if (p.alpha <= 0) {
+            this.particles.splice(index, 1);
+          }
+        });
+      }
+
+      draw() {
+        this.particles.forEach((p) => {
+          ctx.save();
+          ctx.globalAlpha = p.alpha; // Efeito de fade
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+          ctx.closePath();
+          ctx.restore();
+        });
+      }
+    }
+
+    const fireworks = [];
+
+    function spawnFirework() {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height / 2; // Explosões na metade superior
+      fireworks.push(new Firework(x, y));
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; // Efeito de rastro
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      fireworks.forEach((firework, index) => {
+        firework.update();
+        firework.draw();
+        if (firework.particles.length === 0) {
+          fireworks.splice(index, 1);
+        }
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    // Criar fogos a cada 600ms
+    setInterval(spawnFirework, 600);
+
+    animate();
+  </script>
+</body>
+</html>
+
